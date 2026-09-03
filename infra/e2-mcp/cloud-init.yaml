@@ -49,8 +49,8 @@ write_files:
       [Install]
       WantedBy=multi-user.target
   - path: /etc/mcp-server/environment
-    owner: root:mcp
-    permissions: "0640"
+    owner: root:root
+    permissions: "0600"
     content: |
       MCP_LISTEN_ADDR=127.0.0.1:3000
       MCP_TRANSPORT=streamable-http
@@ -69,6 +69,8 @@ runcmd:
   - [ufw, --force, enable]
   - [mkdir, -p, /opt/mcp-server/bin]
   - [mkdir, -p, /var/lib/mcp-server]
+  - [chown, "root:mcp", /etc/mcp-server/environment]
+  - [chmod, "0640", /etc/mcp-server/environment]
   - [chown, -R, "mcp:mcp", /opt/mcp-server]
   - [chown, -R, "mcp:mcp", /var/lib/mcp-server]
   - [bash, -lc, "test -f /swapfile || { fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile; }"]

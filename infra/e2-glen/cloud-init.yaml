@@ -49,8 +49,8 @@ write_files:
       [Install]
       WantedBy=multi-user.target
   - path: /etc/glen/environment
-    owner: root:glen
-    permissions: "0640"
+    owner: root:root
+    permissions: "0600"
     content: |
       GLEN_LISTEN_ADDR=127.0.0.1:8080
   - path: /etc/apt/apt.conf.d/20auto-upgrades
@@ -68,6 +68,8 @@ runcmd:
   - [ufw, --force, enable]
   - [mkdir, -p, /opt/glen/bin]
   - [mkdir, -p, /var/lib/glen]
+  - [chown, "root:glen", /etc/glen/environment]
+  - [chmod, "0640", /etc/glen/environment]
   - [chown, -R, "glen:glen", /opt/glen]
   - [chown, -R, "glen:glen", /var/lib/glen]
   - [bash, -lc, "test -f /swapfile || { fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile; }"]
