@@ -2,8 +2,8 @@ name: Create OCI A1 when capacity is available
 
 on:
   schedule:
-    # Private repository default. Change to */5 for a public repository.
-    - cron: "*/30 * * * *"
+    # Public repository: GitHub Actions' shortest supported schedule interval.
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
