@@ -2,6 +2,8 @@ data "oci_core_subnet" "mcp" {
   subnet_id = var.subnet_ocid
 }
 
+# The existing VCN is in the root compartment. CI receives only VCN_ATTACH
+# there; the NSG itself remains managed in the dedicated workload compartment.
 resource "oci_core_network_security_group" "mcp" {
   compartment_id = var.compartment_ocid
   vcn_id         = data.oci_core_subnet.mcp.vcn_id
