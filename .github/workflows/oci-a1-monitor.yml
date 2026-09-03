@@ -1,14 +1,19 @@
-name: OCI A1 capacity worker
+name: OCI A1 capacity monitor
 
 on:
-  workflow_call:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/oci-a1-monitor.yml"
+  schedule:
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
 
 permissions:
   actions: write
   contents: read
 
 concurrency:
-  group: oci-a1-capacity-worker
+  group: oci-a1-capacity-monitor
   cancel-in-progress: false
 
 jobs:
@@ -109,4 +114,4 @@ jobs:
         if: steps.apply.outputs.succeeded == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/oci-a1-scheduler.yml/disable"
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/oci-a1-monitor.yml/disable"
