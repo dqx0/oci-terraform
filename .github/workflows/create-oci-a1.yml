@@ -3,7 +3,7 @@ name: Create OCI A1 when capacity is available
 on:
   schedule:
     # Keep a five-minute cadence, offset from the heavily used */5 boundaries.
-    - cron: "2-57/5 * * * *"
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
   workflow_dispatch:
 
 permissions:
