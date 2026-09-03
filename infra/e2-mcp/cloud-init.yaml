@@ -1,6 +1,8 @@
 #cloud-config
 package_update: true
 package_upgrade: true
+disable_root: true
+ssh_pwauth: false
 packages:
   - ca-certificates
   - fail2ban
