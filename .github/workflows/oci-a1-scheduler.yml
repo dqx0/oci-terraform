@@ -1,0 +1,14 @@
+name: OCI A1 scheduled launcher
+
+on:
+  schedule:
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  launch:
+    uses: ./.github/workflows/oci-a1-capacity-worker.yml
+    secrets: inherit
