@@ -76,7 +76,9 @@ resource "oci_core_instance" "mcp" {
 
   metadata = {
     ssh_authorized_keys = trimspace(var.ssh_public_key)
-    user_data           = base64encode(file("${path.module}/cloud-init.yaml"))
+    user_data = base64encode(templatefile("${path.module}/cloud-init.yaml", {
+      ssh_ingress_cidr = var.ssh_ingress_cidr
+    }))
   }
 
   freeform_tags = {
