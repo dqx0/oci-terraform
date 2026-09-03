@@ -28,7 +28,7 @@ jobs:
       TF_VAR_availability_domain: ${{ vars.OCI_AVAILABILITY_DOMAIN }}
       TF_VAR_subnet_ocid: ${{ secrets.OCI_SUBNET_OCID }}
       TF_VAR_image_ocid: ${{ vars.OCI_E2_IMAGE_OCID }}
-      TF_VAR_ssh_public_key: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+      TF_VAR_ssh_public_key: ${{ secrets.OCI_ITINERO_MCP_SSH_PUBLIC_KEY }}
 
     steps:
       - name: Check out repository

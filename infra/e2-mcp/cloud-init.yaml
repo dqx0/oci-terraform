@@ -9,9 +9,13 @@ packages:
   - ufw
   - unattended-upgrades
 
+groups:
+  - mcp
+
 users:
   - default
   - name: mcp
+    primary_group: mcp
     system: true
     shell: /usr/sbin/nologin
 

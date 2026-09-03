@@ -32,7 +32,7 @@ variable "ssh_public_key" {
 variable "instance_name" {
   description = "Display name of the MCP host."
   type        = string
-  default     = "personal-mcp-e2-micro"
+  default     = "itinero-mcp"
 }
 
 variable "ssh_ingress_cidr" {
