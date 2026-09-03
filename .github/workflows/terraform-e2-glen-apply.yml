@@ -1,0 +1,88 @@
+name: Apply OCI E2 Glen infrastructure
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/e2-glen/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-e2-glen-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: infra/e2-glen
+    env:
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VAR_region: ${{ vars.OCI_REGION }}
+      TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
+      TF_VAR_availability_domain: ${{ vars.OCI_AVAILABILITY_DOMAIN }}
+      TF_VAR_subnet_ocid: ${{ secrets.OCI_SUBNET_OCID }}
+      TF_VAR_image_ocid: ${{ vars.OCI_E2_IMAGE_OCID }}
+      TF_VAR_ssh_public_key: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.12.2"
+          terraform_wrapper: false
+
+      - name: Configure OCI API credentials
+        env:
+          OCI_TENANCY_OCID: ${{ secrets.OCI_TENANCY_OCID }}
+          OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+          OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+          OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.oci"
+          config_file="$HOME/.oci/config"
+          key_file="$HOME/.oci/oci_api_key.pem"
+          printf '%s\n' "$OCI_PRIVATE_KEY" > "$key_file"
+          chmod 600 "$key_file"
+          {
+            printf '[DEFAULT]\n'
+            printf 'user=%s\n' "$OCI_USER_OCID"
+            printf 'fingerprint=%s\n' "$OCI_FINGERPRINT"
+            printf 'tenancy=%s\n' "$OCI_TENANCY_OCID"
+            printf 'region=%s\n' "$TF_VAR_region"
+            printf 'key_file=%s\n' "$key_file"
+          } > "$config_file"
+          chmod 600 "$config_file"
+
+      - name: Initialize E2 Glen state
+        env:
+          STATE_BUCKET: ${{ vars.OCI_STATE_BUCKET }}
+          STATE_NAMESPACE: ${{ vars.OCI_OBJECT_STORAGE_NAMESPACE }}
+        run: |
+          terraform init \
+            -backend-config="bucket=$STATE_BUCKET" \
+            -backend-config="namespace=$STATE_NAMESPACE" \
+            -backend-config="region=$TF_VAR_region" \
+            -backend-config="key=e2-glen/terraform.tfstate" \
+            -backend-config="config_file_profile=DEFAULT"
+
+      - name: Check formatting
+        run: terraform fmt -check
+
+      - name: Validate configuration
+        run: terraform validate
+
+      - name: Apply E2 Glen infrastructure
+        run: terraform apply -auto-approve -no-color
+
+      - name: Show outputs
+        run: terraform output
