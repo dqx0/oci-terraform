@@ -1,17 +1,16 @@
-name: Create OCI A1 when capacity is available
+name: OCI A1 capacity watch v3
 
 on:
   schedule:
     # Keep a five-minute cadence, offset from the heavily used */5 boundaries.
     - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
-  workflow_dispatch:
 
 permissions:
   actions: write
   contents: read
 
 concurrency:
-  group: oci-a1-capacity-watcher-v2
+  group: oci-a1-capacity-watcher-v3
   cancel-in-progress: false
 
 jobs:
@@ -112,4 +111,4 @@ jobs:
         if: steps.apply.outputs.succeeded == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/create-oci-a1.yml/disable"
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/oci-a1-capacity-watch-v3.yml/disable"
