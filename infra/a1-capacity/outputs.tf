@@ -12,4 +12,3 @@ output "public_ip" {
   description = "Public IPv4 address, if one was assigned."
   value       = oci_core_instance.a1.public_ip
 }
-

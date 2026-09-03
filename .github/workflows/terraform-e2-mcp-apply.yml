@@ -1,29 +1,25 @@
-name: OCI A1 capacity monitor
+name: Apply OCI E2 MCP infrastructure
 
 on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/oci-a1-monitor.yml"
-      - "infra/a1-capacity/**"
-  schedule:
-    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+      - "infra/e2-mcp/**"
 
 permissions:
-  actions: write
   contents: read
 
 concurrency:
-  group: oci-a1-capacity-monitor
+  group: terraform-e2-mcp-apply
   cancel-in-progress: false
 
 jobs:
-  create-instance:
+  apply:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
       run:
-        working-directory: infra/a1-capacity
+        working-directory: infra/e2-mcp
     env:
       TF_IN_AUTOMATION: "true"
       TF_INPUT: "false"
@@ -31,10 +27,8 @@ jobs:
       TF_VAR_compartment_ocid: ${{ secrets.OCI_COMPARTMENT_OCID }}
       TF_VAR_availability_domain: ${{ vars.OCI_AVAILABILITY_DOMAIN }}
       TF_VAR_subnet_ocid: ${{ secrets.OCI_SUBNET_OCID }}
-      TF_VAR_image_ocid: ${{ vars.OCI_IMAGE_OCID }}
+      TF_VAR_image_ocid: ${{ vars.OCI_E2_IMAGE_OCID }}
       TF_VAR_ssh_public_key: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-      TF_VAR_ocpus: ${{ vars.OCI_OCPUS || '1' }}
-      TF_VAR_memory_in_gbs: ${{ vars.OCI_MEMORY_IN_GBS || '6' }}
 
     steps:
       - name: Check out repository
@@ -68,9 +62,8 @@ jobs:
             printf 'key_file=%s\n' "$key_file"
           } > "$config_file"
           chmod 600 "$config_file"
-          echo "OCI_CONFIG_FILE=$config_file" >> "$GITHUB_ENV"
 
-      - name: Initialize remote state
+      - name: Initialize E2 MCP state
         env:
           STATE_BUCKET: ${{ vars.OCI_STATE_BUCKET }}
           STATE_NAMESPACE: ${{ vars.OCI_OBJECT_STORAGE_NAMESPACE }}
@@ -79,43 +72,17 @@ jobs:
             -backend-config="bucket=$STATE_BUCKET" \
             -backend-config="namespace=$STATE_NAMESPACE" \
             -backend-config="region=$TF_VAR_region" \
-            -backend-config="key=oci-a1/terraform.tfstate" \
+            -backend-config="key=e2-mcp/terraform.tfstate" \
             -backend-config="config_file_profile=DEFAULT"
+
+      - name: Check formatting
+        run: terraform fmt -check
 
       - name: Validate configuration
         run: terraform validate
 
-      - name: Try to create the instance
-        id: apply
-        run: |
-          set -o pipefail
-          set +e
-          terraform apply -auto-approve -no-color 2>&1 | tee apply.log
-          status=${PIPESTATUS[0]}
-          set -e
+      - name: Apply E2 MCP infrastructure
+        run: terraform apply -auto-approve -no-color
 
-          if [ "$status" -eq 0 ]; then
-            echo "succeeded=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if grep -Eiq \
-            'out of (host )?capacity|capacity is not available|insufficient (host )?capacity' \
-            apply.log; then
-            echo "OCI has no matching A1 capacity; the next scheduled run will retry."
-            echo "succeeded=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "Terraform failed for a reason other than unavailable capacity."
-          exit "$status"
-
-      - name: Show created instance
-        if: steps.apply.outputs.succeeded == 'true'
+      - name: Show outputs
         run: terraform output
-
-      - name: Stop monitoring after success
-        if: steps.apply.outputs.succeeded == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/oci-a1-monitor.yml/disable"

@@ -41,8 +41,8 @@ variable "ocpus" {
   default     = 1
 
   validation {
-    condition     = var.ocpus >= 1 && var.ocpus <= 4
-    error_message = "ocpus must be between 1 and 4 for this deployment."
+    condition     = var.ocpus >= 1 && var.ocpus <= 2
+    error_message = "ocpus must be between 1 and 2 for the current Always Free allocation."
   }
 }
 
@@ -52,8 +52,8 @@ variable "memory_in_gbs" {
   default     = 6
 
   validation {
-    condition     = var.memory_in_gbs >= 1 && var.memory_in_gbs <= 24
-    error_message = "memory_in_gbs must be between 1 and 24 for this deployment."
+    condition     = var.memory_in_gbs >= 1 && var.memory_in_gbs <= 12
+    error_message = "memory_in_gbs must be between 1 and 12 for the current Always Free allocation."
   }
 }
 
@@ -62,4 +62,3 @@ variable "assign_public_ip" {
   type        = bool
   default     = true
 }
-
