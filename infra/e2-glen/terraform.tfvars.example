@@ -3,7 +3,8 @@ compartment_ocid    = "ocid1.compartment.oc1..replace_me"
 availability_domain = "replace_me:AP-TOKYO-1-AD-1"
 subnet_ocid         = "ocid1.subnet.oc1.ap-tokyo-1.replace_me"
 image_ocid          = "ocid1.image.oc1.ap-tokyo-1.replace_me"
-ssh_public_key      = "ssh-ed25519 AAAA... you@example"
+# GitHub Actions supplies this from the OCI_GLEN_SSH_PUBLIC_KEY secret.
+ssh_public_key = "ssh-ed25519 AAAA... glen-auth"
 
 ssh_ingress_cidr   = "121.2.38.242/32"
 https_ingress_cidr = "0.0.0.0/0"
