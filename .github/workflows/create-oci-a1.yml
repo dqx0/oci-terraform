@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: oci-a1-capacity-watcher
+  group: oci-a1-capacity-watcher-v2
   cancel-in-progress: false
 
 jobs:
