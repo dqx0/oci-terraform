@@ -69,7 +69,7 @@ resource "oci_core_instance" "mcp" {
   }
 
   create_vnic_details {
-    assign_public_ip = true
+    assign_public_ip = false
     display_name     = "itinero-mcp"
     hostname_label   = "itinero-mcp"
     nsg_ids          = [oci_core_network_security_group.mcp.id]
@@ -92,6 +92,34 @@ resource "oci_core_instance" "mcp" {
     prevent_destroy = true
     # OCI rejects changes to user_data and ssh_authorized_keys after launch.
     # Updated metadata is applied the next time the instance is created.
-    ignore_changes = [metadata]
+    ignore_changes = [
+      metadata,
+      create_vnic_details[0].assign_public_ip,
+    ]
+  }
+}
+
+data "oci_core_vnic_attachments" "mcp" {
+  compartment_id = var.compartment_ocid
+  instance_id    = oci_core_instance.mcp.id
+}
+
+data "oci_core_private_ips" "mcp" {
+  vnic_id = data.oci_core_vnic_attachments.mcp.vnic_attachments[0].vnic_id
+}
+
+resource "oci_core_public_ip" "mcp" {
+  compartment_id = var.compartment_ocid
+  display_name   = "itinero-mcp-reserved"
+  lifetime       = "RESERVED"
+  private_ip_id  = one([for ip in data.oci_core_private_ips.mcp.private_ips : ip.id if ip.is_primary])
+
+  freeform_tags = {
+    "managed-by" = "terraform-github-actions"
+    "purpose"    = "itinero-mcp"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }

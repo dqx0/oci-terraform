@@ -9,6 +9,11 @@ output "instance_state" {
 }
 
 output "public_ip" {
-  description = "Public IPv4 address of the MCP host."
-  value       = oci_core_instance.mcp.public_ip
+  description = "Reserved public IPv4 address of the MCP host."
+  value       = oci_core_public_ip.mcp.ip_address
+}
+
+output "public_ip_id" {
+  description = "OCID of the reserved public IPv4 address."
+  value       = oci_core_public_ip.mcp.id
 }
