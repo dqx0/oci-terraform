@@ -90,6 +90,9 @@ resource "oci_core_instance" "glen" {
 
   lifecycle {
     prevent_destroy = true
+    # OCI rejects changes to user_data and ssh_authorized_keys after launch.
+    # Updated metadata is applied the next time the instance is created.
+    ignore_changes = [metadata]
   }
 }
 

@@ -9,9 +9,13 @@ packages:
   - ufw
   - unattended-upgrades
 
+groups:
+  - glen
+
 users:
   - default
   - name: glen
+    primary_group: glen
     system: true
     shell: /usr/sbin/nologin
 
