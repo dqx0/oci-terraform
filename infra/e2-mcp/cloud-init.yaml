@@ -62,6 +62,12 @@ write_files:
       APT::Periodic::Unattended-Upgrade "1";
 
 runcmd:
+  # Oracle-provided images place a terminal REJECT before UFW's chains.
+  # Remove the image defaults so UFW can enforce the rules below.
+  - [bash, -lc, "iptables -C INPUT -p tcp -m state --state NEW --dport 22 -j ACCEPT 2>/dev/null && iptables -D INPUT -p tcp -m state --state NEW --dport 22 -j ACCEPT || true"]
+  - [bash, -lc, "iptables -C INPUT -j REJECT --reject-with icmp-host-prohibited 2>/dev/null && iptables -D INPUT -j REJECT --reject-with icmp-host-prohibited || true"]
+  - [bash, -lc, "iptables -C FORWARD -j REJECT --reject-with icmp-host-prohibited 2>/dev/null && iptables -D FORWARD -j REJECT --reject-with icmp-host-prohibited || true"]
+  - [bash, -lc, "sed -i '/^-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT$/d; /^-A INPUT -j REJECT --reject-with icmp-host-prohibited$/d; /^-A FORWARD -j REJECT --reject-with icmp-host-prohibited$/d' /etc/iptables/rules.v4"]
   - [ufw, default, deny, incoming]
   - [ufw, default, allow, outgoing]
   - [bash, -lc, "ufw allow from '${ssh_ingress_cidr}' to any port 22 proto tcp"]
